@@ -1,0 +1,90 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# UI/Graph Engineer Guide
+
+Description: Guidelines for UI/Graph Engineer role focused on graph visualization, node rendering, and UI components. Request when implementing visual graph editor, creating custom node types, designing property editors, or developing agent sidebar components.
+
+As the UI/Graph Engineer, you are responsible for the `agentforge-graph` extension, which implements the visual graph editor and agent sidebar components.
+
+## Key Responsibilities
+
+- Implement visual graph editor for creating and manipulating agent relationships
+- Create custom node types for different agent components
+- Design property editors for node configuration
+- Develop agent sidebar components for navigation and management
+- Provide an accessible and responsive user interface
+
+## Graph Visualization
+
+Use libraries like Cytoscape.js or D3.js for graph rendering:
+
+- Optimize for performance with large graphs
+- Support standard interactions (zoom, pan, select)
+- Implement virtualization for performance
+- Use WebGL acceleration where available
+- Ensure keyboard navigation for accessibility
+
+## Node Rendering Example
+
+```typescript
+// src/nodeRenderers/AgentNodeRenderer.tsx
+import * as React from 'react';
+import { NodeRenderer, NodeData } from '../types';
+
+export class AgentNodeRenderer implements NodeRenderer {
+  public readonly nodeType = 'agent';
+
+  public render(props: { data: NodeData; selected: boolean }): React.ReactNode {
+    const { data, selected } = props;
+    const borderColor = selected ? '#0078D4' : '#8A8886';
+
+    return (
+      <div
+        className="agent-node"
+        style={{
+          border: `2px solid ${borderColor}`,
+          borderRadius: '4px',
+          padding: '8px',
+          backgroundColor: '#FFFFFF',
+          width: '180px'
+        }}
+        role="button"
+        tabIndex={0}
+        aria-selected={selected}
+      >
+        <div className="agent-node-header">
+          <span className="agent-node-icon">🤖</span>
+          <span className="agent-node-title">{data.name}</span>
+        </div>
+        <div className="agent-node-type">{data.agentType}</div>
+      </div>
+    );
+  }
+}
+```
+
+## Component Design
+
+Follow these principles for UI components:
+
+- Use React for component management
+- Follow atomic design principles
+- Create a reusable component library
+- Ensure screen reader compatibility
+- Support both light and dark themes
+
+## Testing Focus
+
+Prioritize these testing areas:
+
+- Visual regression tests for UI components
+- Performance testing for large graphs
+- Accessibility testing with screen readers
+- Cross-browser compatibility testing
+
+## Reference
+
+Detailed guidance is available in the [Engineer Role Prompts](mdc:code-agent-docs/engineer-role-prompts.md) document under the UI/Graph Engineer section.

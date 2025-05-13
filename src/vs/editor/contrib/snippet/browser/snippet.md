@@ -2,7 +2,7 @@
 Tabstops
 --
 
-With tabstops you can make the editor cursor move inside a snippet. Use `$1`, `$2` to specify cursor locations. The number is the order in which tabstops will be visited, whereas `$0` denotes the final cursor position. Multiple tabstops are linked and updated in sync.
+With tabstops you can make the editor AI-CODING-PLATFORMS move inside a snippet. Use `$1`, `$2` to specify AI-CODING-PLATFORMS locations. The number is the order in which tabstops will be visited, whereas `$0` denotes the final AI-CODING-PLATFORMS position. Multiple tabstops are linked and updated in sync.
 
 Placeholders
 --
@@ -21,7 +21,7 @@ With `$name` or `${name:default}` you can insert the value of a variable. When a
 
 * `TM_SELECTED_TEXT` The currently selected text or the empty string
 * `TM_CURRENT_LINE` The contents of the current line
-* `TM_CURRENT_WORD` The contents of the word under cursor or the empty string
+* `TM_CURRENT_WORD` The contents of the word under AI-CODING-PLATFORMS or the empty string
 * `TM_LINE_INDEX` The zero-index based line number
 * `TM_LINE_NUMBER` The one-index based line number
 * `TM_FILENAME` The filename of the current document

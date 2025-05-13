@@ -1,0 +1,47 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# AgentForge Shadow Workspace
+
+Description: Explanation of the shadow workspace concept for safe agent code modifications. Request when implementing features that involve agents making code changes, generating diffs, or requiring user review before applying changes.
+
+The shadow workspace is a key concept in AgentForge, inspired by AI-CODING-PLATFORMS-shadow-workspace. It enables agents to safely experiment with code changes before presenting them to users.
+
+## Key Concepts
+
+- **Shadow Workspace** - An isolated copy of the real workspace where agents can safely make changes
+- **Diff Generation** - Creating diffs between original and modified files
+- **Change Review** - Presenting changes to users for acceptance, rejection, or modification
+- **Change Application** - Applying approved changes back to the real workspace
+
+## Usage Pattern
+
+```typescript
+// Creating and using a shadow workspace
+async function agentModifyCode(fileUri) {
+  // Create shadow workspace
+  const shadowWorkspace = await shadowWorkspaceManager.create();
+
+  // Copy file to shadow workspace
+  const shadowFileUri = await shadowWorkspace.copyFile(fileUri);
+
+  // Let agent modify the code in shadow workspace
+  await agentRuntime.runCodeImprovement(shadowFileUri);
+
+  // Generate diff between original and modified
+  const diff = await shadowWorkspace.generateDiff(fileUri, shadowFileUri);
+
+  // Show diff to user for review
+  const userDecision = await showDiffForReview(diff);
+
+  if (userDecision === 'accept') {
+    // Apply changes to actual workspace
+    await shadowWorkspace.applyChanges(fileUri);
+  }
+
+  // Clean up
+  await shadowWorkspace.dispose();
+}
+```

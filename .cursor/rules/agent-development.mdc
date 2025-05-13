@@ -1,0 +1,45 @@
+---
+description: Guidelines for creating, testing, and debugging AI agents within AgentForge. Request when developing agent components, implementing agent runtime behavior, or creating debugging tools for agent inspection.
+globs:
+alwaysApply: false
+---
+# AgentForge Agent Development
+
+Description: Guidelines for creating, testing, and debugging AI agents within AgentForge. Request when developing agent components, implementing agent runtime behavior, or creating debugging tools for agent inspection.
+
+AgentForge is designed to simplify the process of creating, testing, and debugging AI agents. This document provides guidance for agent development within the platform.
+
+## Agent Components
+
+- **Agent Nodes** - Core building blocks representing individual agents
+- **Memory Nodes** - Storage for agent state and knowledge
+- **Workflow Nodes** - Define sequence and flow of agent interactions
+- **Action Nodes** - Represent capabilities and tools available to agents
+
+## Agent Runtime Model
+
+The agent runtime follows a sandboxed execution model:
+
+- Agents run in isolated environments for security
+- Resource limits prevent runaway processes
+- Standard I/O channels enable controlled communication
+- Memory is persisted and can be inspected/modified
+
+## Agent Debugging
+
+AgentForge provides rich debugging tools:
+
+- Step-by-step execution of agent processes
+- Memory state inspection and modification
+- Time-travel debugging with state snapshots
+- Visualization of agent reasoning and decision-making
+- LLM prompt and response inspection
+
+## Agent Templates
+
+Use the template system for quick agent creation:
+
+- Basic agent templates for common use cases
+- Customizable templates with property editors
+- Import/export functionality for sharing templates
+- Template library for community contributions

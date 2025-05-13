@@ -1,0 +1,141 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Integration & Sync Engineer Guide
+
+Description: Guidelines for Integration & Sync Engineer role focused on bidirectional code-graph synchronization. Request when implementing mappings between nodes and code, navigation features, code decorations, or handling file system events for synchronization.
+
+As the Integration & Sync Engineer, you are responsible for the `agentforge-navigation` extension, which implements bidirectional synchronization between code and graph representations.
+
+## Key Responsibilities
+
+- Create mappings between graph nodes and code locations
+- Implement navigation between graph and code
+- Add code decorations for agent-related code
+- Handle file system events for synchronization
+- Manage conflicts during concurrent edits
+- Create a persistent mapping storage system
+
+## Code-Graph Mapping
+
+Use this pattern for mapping between code and graph elements:
+
+```typescript
+// src/CodeGraphMapper.ts
+import * as vscode from 'vscode';
+import { NodeId, EdgeId, GraphElement } from './types';
+
+export interface CodeLocation {
+  uri: vscode.Uri;
+  range: vscode.Range;
+}
+
+export class CodeGraphMapper {
+  private codeToGraph = new Map<string, GraphElement>();
+  private graphToCode = new Map<string, CodeLocation>();
+
+  public mapNodeToCode(nodeId: NodeId, location: CodeLocation): void {
+    const locationKey = this.getLocationKey(location);
+    this.codeToGraph.set(locationKey, { type: 'node', id: nodeId });
+    this.graphToCode.set(`node:${nodeId}`, location);
+  }
+
+  public getGraphElementAtLocation(location: CodeLocation): GraphElement | undefined {
+    const locationKey = this.getLocationKey(location);
+    return this.codeToGraph.get(locationKey);
+  }
+
+  public getCodeLocationForNode(nodeId: NodeId): CodeLocation | undefined {
+    return this.graphToCode.get(`node:${nodeId}`);
+  }
+
+  private getLocationKey(location: CodeLocation): string {
+    return `${location.uri.toString()}:${location.range.start.line}:${location.range.start.character}`;
+  }
+
+  public handleFileRename(oldUri: vscode.Uri, newUri: vscode.Uri): void {
+    // Update mappings when files are renamed
+    for (const [key, element] of this.codeToGraph.entries()) {
+      if (key.startsWith(oldUri.toString())) {
+        const newKey = key.replace(oldUri.toString(), newUri.toString());
+        this.codeToGraph.set(newKey, element);
+        this.codeToGraph.delete(key);
+
+        // Update the reverse mapping
+        const id = element.type === 'node' ? `node:${element.id}` : `edge:${element.id}`;
+        const location = this.graphToCode.get(id);
+        if (location) {
+          this.graphToCode.set(id, { uri: newUri, range: location.range });
+        }
+      }
+    }
+  }
+}
+```
+
+## Code Decorations
+
+Create visually consistent code decorations:
+
+- Use decorations that are visually consistent with the graph
+- Apply decorations in visible editor ranges only
+- Update decorations on editor changes
+- Support light and dark themes
+- Add hover information for decorated code
+
+Example:
+
+```typescript
+// src/CodeDecorationProvider.ts
+export class CodeDecorationProvider {
+  private decorationType = vscode.window.createTextEditorDecorationType({
+    backgroundColor: new vscode.ThemeColor('agentforge.agentNode.background'),
+    border: '1px solid',
+    borderColor: new vscode.ThemeColor('agentforge.agentNode.border'),
+    borderRadius: '3px',
+    after: {
+      contentText: ' 🤖',
+      color: new vscode.ThemeColor('agentforge.agentNode.icon')
+    }
+  });
+
+  public updateDecorations(editor: vscode.TextEditor, mapper: CodeGraphMapper): void {
+    const decorations: vscode.DecorationOptions[] = [];
+
+    // For each visible range in the editor
+    const visibleRanges = editor.visibleRanges;
+    for (const range of visibleRanges) {
+      // Find all graph elements in the visible range
+      // Add decoration options for each one
+    }
+
+    editor.setDecorations(this.decorationType, decorations);
+  }
+}
+```
+
+## File System Handling
+
+Listen to file system events for synchronization:
+
+- Workspace file changes (create, delete, rename)
+- Document changes in editors
+- External file changes
+- Implement efficient diff generation
+- Create conflict resolution UI when needed
+
+## Testing Focus
+
+Prioritize these testing areas:
+
+- Integration tests for code-graph synchronization
+- Unit tests for mapping and decoration logic
+- Edge case testing for conflict resolution
+- Performance testing for large codebases
+- User scenario testing for navigation flows
+
+## Reference
+
+Detailed guidance is available in the [Engineer Role Prompts](mdc:code-agent-docs/engineer-role-prompts.md) document under the Integration & Sync Engineer section.

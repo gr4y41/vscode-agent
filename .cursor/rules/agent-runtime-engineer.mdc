@@ -1,0 +1,112 @@
+---
+description: Guidelines for Agent Runtime Engineer role focused on agent execution environment and memory management. Request when implementing agent sandboxing, agent lifecycle management, memory storage systems, or debugging tools for agent inspection.
+globs:
+alwaysApply: false
+---
+# Agent Runtime Engineer Guide
+
+Description: Guidelines for Agent Runtime Engineer role focused on agent execution environment and memory management. Request when implementing agent sandboxing, agent lifecycle management, memory storage systems, or debugging tools for agent inspection.
+
+As the Agent Runtime Engineer, you are responsible for the `agentforge-runtime` and `agentforge-memory` extensions, which provide the execution environment for agents and manage agent memory states.
+
+## Key Responsibilities
+
+- Implement sandboxed execution model for agent code
+- Manage agent lifecycle (create, start, stop, delete)
+- Create standardized I/O channels for agent communication
+- Design memory storage and retrieval system
+- Develop memory visualization components
+- Support debugging and inspection of agent state
+
+## Agent Runtime Implementation
+
+Use this pattern for the agent runtime:
+
+```typescript
+// src/AgentRuntime.ts
+import { EventEmitter } from 'events';
+import { AgentDefinition, AgentState } from './types';
+import { MemoryManager } from './MemoryManager';
+
+export class AgentRuntime extends EventEmitter {
+  private agents = new Map<string, AgentInstance>();
+  private memoryManager: MemoryManager;
+
+  constructor(memoryManager: MemoryManager) {
+    super();
+    this.memoryManager = memoryManager;
+  }
+
+  public async createAgent(definition: AgentDefinition): Promise<string> {
+    const agentId = definition.id || generateId();
+
+    // Create agent sandbox
+    const sandbox = await this.createSandbox(agentId, definition);
+
+    // Initialize memory
+    await this.memoryManager.initializeMemory(agentId, definition.initialMemory || {});
+
+    // Create agent instance
+    const agent = new AgentInstance(agentId, definition, sandbox, this.memoryManager);
+    this.agents.set(agentId, agent);
+
+    this.emit('agentCreated', { agentId, definition });
+
+    return agentId;
+  }
+
+  public async startAgent(agentId: string, options?: any): Promise<void> {
+    const agent = this.getAgentOrThrow(agentId);
+    await agent.start(options);
+    this.emit('agentStarted', { agentId, options });
+  }
+
+  public async stopAgent(agentId: string): Promise<void> {
+    const agent = this.getAgentOrThrow(agentId);
+    await agent.stop();
+    this.emit('agentStopped', { agentId });
+  }
+
+  private getAgentOrThrow(agentId: string): AgentInstance {
+    const agent = this.agents.get(agentId);
+    if (!agent) {
+      throw new Error(`Agent not found: ${agentId}`);
+    }
+    return agent;
+  }
+}
+```
+
+## Memory Management
+
+Design the memory system with these considerations:
+
+- Use a schema-based approach for validation
+- Support different memory types (short-term, long-term, vector)
+- Implement efficient queries and updates
+- Create history tracking for debugging
+- Visualize memory states with appropriate UI components
+
+## Sandboxing
+
+Implement secure agent sandboxing:
+
+- Use process isolation (Node.js worker threads, separate processes)
+- Implement resource monitoring and limits
+- Create controlled communication channels
+- Sanitize inputs and outputs
+- Set up timeout mechanisms for long-running operations
+
+## Testing Focus
+
+Prioritize these testing areas:
+
+- Unit tests for runtime and memory operations
+- Integration tests for agent lifecycle management
+- Security testing for sandbox boundaries
+- Performance tests for memory operations with large datasets
+- Stress testing with multiple concurrent agents
+
+## Reference
+
+Detailed guidance is available in the [Engineer Role Prompts](mdc:code-agent-docs/engineer-role-prompts.md) document under the Agent Runtime Engineer section.

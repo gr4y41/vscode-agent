@@ -1,0 +1,226 @@
+---
+description: Error handling and logging patterns for AgentForge. Request when implementing new features that require error management, adding logging, or creating observability infrastructure for tracking errors and performance.
+globs:
+alwaysApply: false
+---
+# AgentForge Error Handling Patterns
+
+Description: Error handling and logging patterns for AgentForge. Request when implementing new features that require error management, adding logging, or creating observability infrastructure for tracking errors and performance.
+
+This rule defines consistent error handling and logging patterns to use throughout the AgentForge codebase.
+
+## Error Types
+
+Define specific error types for different categories:
+
+```typescript
+// shared/src/errors.ts
+export class AgentForgeError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AgentForgeError';
+  }
+}
+
+export class AgentRuntimeError extends AgentForgeError {
+  constructor(message: string, public agentId: string) {
+    super(`Agent runtime error [${agentId}]: ${message}`);
+    this.name = 'AgentRuntimeError';
+  }
+}
+
+export class MemoryAccessError extends AgentForgeError {
+  constructor(message: string, public memoryId: string) {
+    super(`Memory access error [${memoryId}]: ${message}`);
+    this.name = 'MemoryAccessError';
+  }
+}
+
+export class GraphOperationError extends AgentForgeError {
+  constructor(message: string, public nodeId?: string) {
+    super(`Graph operation error${nodeId ? ` [${nodeId}]` : ''}: ${message}`);
+    this.name = 'GraphOperationError';
+  }
+}
+
+export class NavigationError extends AgentForgeError {
+  constructor(message: string, public uri?: string) {
+    super(`Navigation error${uri ? ` [${uri}]` : ''}: ${message}`);
+    this.name = 'NavigationError';
+  }
+}
+
+export class LLMError extends AgentForgeError {
+  constructor(message: string, public model?: string) {
+    super(`LLM error${model ? ` [${model}]` : ''}: ${message}`);
+    this.name = 'LLMError';
+  }
+}
+```
+
+## Logging Standards
+
+Use consistent logging patterns:
+
+```typescript
+// Import logger
+import { logger } from 'agentforge-core';
+
+// Log levels
+logger.debug('Detailed information for debugging');
+logger.info('Important information during normal operation');
+logger.warn('Warning that might indicate a problem');
+logger.error('Error that affects operation but doesn't crash');
+logger.fatal('Severe error that will likely lead to application crash');
+
+// Structured logging
+logger.info('Operation completed', {
+  operation: 'agentStart',
+  agentId: 'agent-123',
+  duration: 150,
+  success: true
+});
+
+// Logging errors
+try {
+  // Operation that might fail
+} catch (error) {
+  logger.error('Failed to start agent', {
+    agentId: 'agent-123',
+    error: error.message,
+    stack: error.stack
+  });
+
+  // Re-throw or handle as appropriate
+}
+```
+
+## Error Handling Patterns
+
+### 1. Async Functions
+
+Use try/catch with async/await:
+
+```typescript
+async function startAgent(agentId: string): Promise<void> {
+  try {
+    // Operation that might fail
+    await agentRuntime.start(agentId);
+  } catch (error) {
+    logger.error('Failed to start agent', { agentId, error: error.message });
+    throw new AgentRuntimeError(`Failed to start: ${error.message}`, agentId);
+  }
+}
+```
+
+### 2. Event Emitters
+
+Add error handling to event emitters:
+
+```typescript
+const eventEmitter = new EventEmitter();
+
+// Add error handler
+eventEmitter.on('error', (error) => {
+  logger.error('Event emitter error', { error: error.message });
+});
+
+// Emit events safely
+try {
+  // Operation that might fail
+  eventEmitter.emit('success', result);
+} catch (error) {
+  eventEmitter.emit('error', error);
+}
+```
+
+### 3. API Responses
+
+Create consistent error responses:
+
+```typescript
+interface ErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+}
+
+function createErrorResponse(error: Error, code: string): ErrorResponse {
+  return {
+    success: false,
+    error: {
+      code,
+      message: error.message,
+      details: error instanceof AgentForgeError ? error : undefined
+    }
+  };
+}
+
+// Usage
+try {
+  // Operation that might fail
+  return { success: true, data: result };
+} catch (error) {
+  logger.error('API error', { error: error.message });
+  return createErrorResponse(error, 'OPERATION_FAILED');
+}
+```
+
+### 4. UI Error Handling
+
+Handle errors in UI components:
+
+```typescript
+function ErrorBoundary({ children }: { children: React.ReactNode }) {
+  const [error, setError] = useState<Error | null>(null);
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <h3>Something went wrong</h3>
+        <p>{error.message}</p>
+        <button onClick={() => setError(null)}>Try Again</button>
+      </div>
+    );
+  }
+
+  return (
+    <ErrorBoundaryContext.Provider value={{ setError }}>
+      {children}
+    </ErrorBoundaryContext.Provider>
+  );
+}
+```
+
+## Observability Integration
+
+Connect error handling with observability:
+
+```typescript
+// Configure error tracking
+observability.configureErrorTracking({
+  onError: (error, metadata) => {
+    // Report to telemetry system if enabled by user
+    if (vscode.workspace.getConfiguration('agentforge').get('telemetry.enabled')) {
+      telemetry.reportError(error, metadata);
+    }
+  }
+});
+
+// Capture operation details
+observability.captureOperation('startAgent', async (captureMetadata) => {
+  // Track start time
+  captureMetadata({ agentId, startTime: Date.now() });
+
+  try {
+    await agentRuntime.start(agentId);
+    captureMetadata({ success: true, endTime: Date.now() });
+  } catch (error) {
+    captureMetadata({ success: false, error: error.message, endTime: Date.now() });
+    throw error;
+  }
+});
+```

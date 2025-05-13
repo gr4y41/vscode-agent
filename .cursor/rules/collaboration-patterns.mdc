@@ -1,0 +1,183 @@
+---
+description: Guidelines for collaboration between engineers and agents on the AgentForge codebase. Request when implementing features that span multiple extensions, resolving conflicts, defining contracts between components, or managing backward compatibility.
+globs:
+alwaysApply: false
+---
+# AgentForge Collaboration Patterns
+
+Description: Guidelines for collaboration between engineers and agents on the AgentForge codebase. Request when implementing features that span multiple extensions, resolving conflicts, defining contracts between components, or managing backward compatibility.
+
+This rule provides guidance for collaboration between multiple agents or engineers working on the AgentForge codebase, ensuring coordination and conflict resolution.
+
+## Extension Ownership
+
+Each extension should have clear ownership boundaries:
+
+1. **Primary Owner**: Has final decision-making authority for the extension
+2. **Contributors**: Can make changes but should coordinate with owner
+3. **Dependency Consumers**: Use the extension but shouldn't modify it directly
+
+**Example Ownership Structure**:
+
+| Extension | Primary Owner | Contributors |
+|-----------|---------------|--------------|
+| agentforge-core | Core Platform Engineer | All |
+| agentforge-graph | UI/Graph Engineer | Integration & Sync Engineer |
+| agentforge-runtime | Agent Runtime Engineer | LLM & Tooling Engineer |
+| agentforge-memory | Agent Runtime Engineer | UI/Graph Engineer |
+| agentforge-navigation | Integration & Sync Engineer | UI/Graph Engineer |
+
+## Interface Contracts
+
+Define clear contracts between extensions:
+
+```typescript
+// shared/src/contracts/RuntimeContract.ts
+export interface RuntimeContract {
+  /**
+   * Creates a new agent with the specified configuration.
+   * @param definition The agent definition
+   * @returns The ID of the created agent
+   */
+  createAgent(definition: AgentDefinition): Promise<string>;
+
+  /**
+   * Starts an existing agent.
+   * @param agentId The ID of the agent to start
+   * @param options Optional startup options
+   */
+  startAgent(agentId: string, options?: any): Promise<void>;
+
+  /**
+   * Stops a running agent.
+   * @param agentId The ID of the agent to stop
+   */
+  stopAgent(agentId: string): Promise<void>;
+}
+```
+
+## Pull Request Workflow
+
+When proposing changes that affect multiple extensions:
+
+1. **Pre-Implementation Coordination**:
+   - Announce intent on message bus
+   - Discuss design with affected extension owners
+   - Agree on interface changes before implementation
+
+2. **Implementation Strategy**:
+   - Start with interface contracts
+   - Implement changes in dependent extensions first
+   - Use feature flags to hide incomplete features
+
+3. **Testing Verification**:
+   - Write cross-extension integration tests
+   - Verify changes work with existing functionality
+   - Check for performance impacts
+
+## Conflict Resolution
+
+Resolve conflicts using these strategies:
+
+1. **API Versioning**:
+
+```typescript
+// Support multiple versions of an API
+class MemoryManager {
+  // Original API (deprecated but maintained)
+  public async get(key: string): Promise<any> {
+    return this.getV2(key, { compatibility: true });
+  }
+
+  // New API with additional features
+  public async getV2(key: string, options?: GetOptions): Promise<any> {
+    // Implementation
+  }
+}
+```
+
+2. **Adapter Pattern**:
+
+```typescript
+// Adapting an existing API to fit a new interface
+class LegacyAgentAdapter implements Agent {
+  constructor(private legacyAgent: LegacyAgent) {}
+
+  async start(options?: any): Promise<void> {
+    // Convert options to legacy format
+    const legacyOptions = this.convertOptions(options);
+
+    // Call legacy API
+    return this.legacyAgent.run(legacyOptions);
+  }
+
+  // Other adapter methods
+}
+```
+
+3. **Feature Flags**:
+
+```typescript
+// Configuration for feature flags
+const featureFlags = {
+  newGraphRenderer: false,
+  improvedMemoryAccess: true,
+  experimentalAgentTypes: false
+};
+
+// Using feature flags
+if (featureFlags.newGraphRenderer) {
+  // Use new implementation
+  return new ImprovedGraphRenderer();
+} else {
+  // Use existing implementation
+  return new GraphRenderer();
+}
+```
+
+## Message Bus Communication
+
+Use standardized message bus for cross-extension coordination:
+
+```typescript
+// Extension A: Announce intent to modify shared resource
+messageBus.publish('agentforge.coordination.lockRequest', {
+  resourceId: 'agent-123',
+  requesterId: 'extension-A',
+  priority: 'high',
+  expires: Date.now() + 30000 // 30 seconds
+});
+
+// Extension B: Acknowledge or reject
+messageBus.publish('agentforge.coordination.lockResponse', {
+  resourceId: 'agent-123',
+  requesterId: 'extension-A',
+  granted: true,
+  granterId: 'extension-B'
+});
+
+// Extension A: Release lock when done
+messageBus.publish('agentforge.coordination.lockRelease', {
+  resourceId: 'agent-123',
+  requesterId: 'extension-A'
+});
+```
+
+## Backward Compatibility
+
+Maintain backward compatibility using these strategies:
+
+1. **Deprecation Cycle**:
+   - Mark methods as deprecated with `@deprecated` tag
+   - Keep deprecated methods working for at least one major version
+   - Log warnings when deprecated methods are used
+
+2. **Migration Utilities**:
+   - Provide helpers to update configurations to new format
+   - Auto-migrate data formats when possible
+   - Document breaking changes with migration guides
+
+3. **Compatibility Layers**:
+   - Create adapter layers for major changes
+   - Implement compatibility wrappers for changed APIs
+   - Use runtime detection to apply appropriate behavior

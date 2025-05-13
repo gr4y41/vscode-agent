@@ -1,0 +1,42 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# AgentForge Extension Architecture
+
+Description: Details of AgentForge's modular extension-based architecture. Request when you need to understand extension communication patterns, activation events, contribution points, or how to structure a new extension in the system.
+
+AgentForge follows a modular extension-based architecture inspired by VSCode and AI-CODING-PLATFORMS extensions.
+
+## Extension Model
+
+- Each major component is implemented as a standalone VSCode extension
+- Extensions activate on startup using `onStartupFinished` activation event
+- All extensions communicate through a central message bus
+- Extensions are loaded and managed by the agentforge-core extension
+
+## Key Extensions
+
+- `agentforge-core` - Foundation extension with message bus and core services
+- `agentforge-graph` - Graph visualization and node management
+- `agentforge-runtime` - Agent execution environment
+- `agentforge-memory` - Memory storage, retrieval, and visualization
+- `agentforge-navigation` - Code-graph synchronization
+
+## Message Bus Pattern
+
+Extensions communicate using a typed message bus system:
+
+```typescript
+// Publishing a message
+messageBus.publish('agentforge.runtime.agentStarted', {
+  agentId: 'agent-123',
+  timestamp: Date.now()
+});
+
+// Subscribing to messages
+messageBus.subscribe('agentforge.memory.stateChanged', (data) => {
+  // Handle memory state change
+});
+```

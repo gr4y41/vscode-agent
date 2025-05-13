@@ -1,0 +1,159 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# LLM & Tooling Engineer Guide
+
+Description: Guidelines for LLM & Tooling Engineer role focused on AI integration across extensions. Request when implementing language model interfaces, API key management, caching systems, token budgeting, agent templates, or debugging tools for reasoning visualization.
+
+As the LLM & Tooling Engineer, you are responsible for integrating language models across all AgentForge extensions and implementing agent templates and debugging tools.
+
+## Key Responsibilities
+
+- Create provider-agnostic interface for language models
+- Implement secure API key management
+- Design caching and optimization systems
+- Develop token budget management
+- Create prompt templates for common agent tasks
+- Build debugging tools for agent reasoning
+- Implement time-travel debugging capabilities
+
+## LLM Provider Interface
+
+Use this pattern for abstracting LLM providers:
+
+```typescript
+// src/llm/LLMProvider.ts
+export interface PromptOptions {
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  maxOutputTokens?: number;
+  topP?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
+  stopSequences?: string[];
+}
+
+export interface TokenUsage {
+  prompt: number;
+  completion: number;
+  total: number;
+}
+
+export interface CompletionResponse {
+  text: string;
+  tokenUsage: TokenUsage;
+  latency: number;
+  provider: string;
+  model: string;
+}
+
+export interface LLMProvider {
+  complete(prompt: string, options: PromptOptions): Promise<CompletionResponse>;
+  completeStreaming?(prompt: string, options: PromptOptions, callback: (chunk: string) => void): Promise<CompletionResponse>;
+}
+```
+
+Provider implementation example:
+
+```typescript
+// src/llm/providers/OpenAIProvider.ts
+export class OpenAIProvider implements LLMProvider {
+  private tokenCounter: TokenCounter;
+
+  constructor(apiKey: string, tokenCounter: TokenCounter) {
+    this.api = new OpenAIApi(new Configuration({ apiKey }));
+    this.tokenCounter = tokenCounter;
+  }
+
+  public async complete(prompt: string, options: PromptOptions): Promise<CompletionResponse> {
+    const tokenCount = this.tokenCounter.countTokens(prompt);
+
+    if (tokenCount > options.maxTokens) {
+      throw new Error(`Prompt exceeds maximum token limit`);
+    }
+
+    try {
+      const startTime = Date.now();
+      const response = await this.api.createCompletion({
+        model: options.model || 'text-davinci-003',
+        prompt,
+        max_tokens: options.maxOutputTokens || 1000,
+        temperature: options.temperature || 0.7
+      });
+      const endTime = Date.now();
+
+      return {
+        text: response.data.choices[0].text || '',
+        tokenUsage: {
+          prompt: tokenCount,
+          completion: this.tokenCounter.countTokens(response.data.choices[0].text || ''),
+          total: response.data.usage?.total_tokens || 0
+        },
+        latency: endTime - startTime,
+        provider: 'openai',
+        model: options.model || 'text-davinci-003'
+      };
+    } catch (error) {
+      console.error('OpenAI API error:', error);
+      throw new Error(`LLM request failed: ${error.message}`);
+    }
+  }
+}
+```
+
+## Credential Management
+
+Implement secure credential storage:
+
+- Use VSCode's built-in secrets storage
+- Support multiple provider configurations
+- Implement credential validation
+- Create secure input UI for API keys
+- Add warning for insecure storage options
+
+## LLM Caching
+
+Design efficient caching system:
+
+- Hash prompts for cache keys
+- Consider input parameters in cache key
+- Implement configurable TTL
+- Add selective cache invalidation
+- Support local storage options
+
+## Agent Templates
+
+Implement template system:
+
+- Create standardized template format
+- Support customization and parameters
+- Add template browser component
+- Enable import/export functionality
+- Design visual template editor
+
+## Debugging Tools
+
+Develop agent debugging tools:
+
+- Visualization of reasoning steps
+- Time-travel with memory state snapshots
+- Token usage monitoring
+- Performance metrics collection
+- Prompt and response inspection UI
+
+## Testing Focus
+
+Prioritize these testing areas:
+
+- Unit tests for LLM interface
+- Integration tests with mock LLM providers
+- Security testing for API key management
+- Performance tests for caching system
+- UX testing for template browser
+
+## Reference
+
+Detailed guidance is available in the [Engineer Role Prompts](mdc:code-agent-docs/engineer-role-prompts.md) document under the LLM & Tooling Engineer section.

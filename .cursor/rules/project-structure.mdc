@@ -1,0 +1,24 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# AgentForge Project Structure
+
+Description: Overview of AgentForge project directory structure and key components. Request when you need to understand the overall organization of directories, location of key files, or relationships between different extensions.
+
+The AgentForge project is structured as a VSCode-based IDE for AI agent development, with a modular extension architecture.
+
+## Key Directories
+
+- `code-agent-docs/` - Documentation for architecture, technical workstreams, and engineer roles
+- `agentforge-core/` - Core extension providing foundation and message bus
+- `agentforge-graph/` - Visual graph editor for agent relationships
+- `agentforge-runtime/` - Agent execution environment
+- `agentforge-memory/` - Memory storage and visualization
+- `agentforge-navigation/` - Bidirectional code-graph synchronization
+
+## Documentation References
+
+- [Technical Workstreams](mdc:code-agent-docs/technical-workstreams.md) - Key technical areas and responsibilities
+- [Engineer Role Prompts](mdc:code-agent-docs/engineer-role-prompts.md) - Detailed guidance for each engineering role

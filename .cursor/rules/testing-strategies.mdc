@@ -1,0 +1,376 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# AgentForge Testing Strategies
+
+Description: Comprehensive testing approaches for AgentForge components. Request when writing unit tests, integration tests, UI component tests, or performance tests to ensure code quality and reliability.
+
+This rule defines comprehensive testing strategies for the AgentForge project, ensuring quality and reliability.
+
+## Unit Testing
+
+Use Jest for unit testing all functionality:
+
+```typescript
+// src/__tests__/AgentRuntime.test.ts
+import { AgentRuntime } from '../AgentRuntime';
+import { MemoryManager } from '../MemoryManager';
+
+describe('AgentRuntime', () => {
+  let agentRuntime: AgentRuntime;
+  let mockMemoryManager: jest.Mocked<MemoryManager>;
+
+  beforeEach(() => {
+    // Setup mocks
+    mockMemoryManager = {
+      initializeMemory: jest.fn(),
+      getMemory: jest.fn(),
+      updateMemory: jest.fn(),
+    } as unknown as jest.Mocked<MemoryManager>;
+
+    // Create instance under test
+    agentRuntime = new AgentRuntime(mockMemoryManager);
+  });
+
+  describe('createAgent', () => {
+    it('should create agent with valid definition', async () => {
+      // Arrange
+      const definition = {
+        type: 'llm',
+        name: 'Test Agent',
+        configuration: { model: 'test-model' }
+      };
+
+      // Act
+      const agentId = await agentRuntime.createAgent(definition);
+
+      // Assert
+      expect(agentId).toBeDefined();
+      expect(mockMemoryManager.initializeMemory).toHaveBeenCalledWith(
+        agentId,
+        expect.any(Object)
+      );
+    });
+
+    it('should throw error with invalid definition', async () => {
+      // Arrange
+      const invalidDefinition = {
+        type: 'unknown',
+        name: 'Test Agent'
+      } as any;
+
+      // Act & Assert
+      await expect(agentRuntime.createAgent(invalidDefinition))
+        .rejects.toThrow('Invalid agent type');
+    });
+  });
+
+  // More tests...
+});
+```
+
+## Integration Testing
+
+Test interactions between extensions:
+
+```typescript
+// integration-tests/RuntimeGraphIntegration.test.ts
+import { AgentRuntime } from 'agentforge-runtime';
+import { GraphManager } from 'agentforge-graph';
+import { MessageBus } from 'agentforge-core';
+
+describe('Runtime-Graph Integration', () => {
+  let agentRuntime: AgentRuntime;
+  let graphManager: GraphManager;
+  let messageBus: MessageBus;
+
+  beforeEach(() => {
+    // Setup real instances (not mocks)
+    messageBus = new MessageBus();
+    agentRuntime = new AgentRuntime(/* dependencies */);
+    graphManager = new GraphManager(/* dependencies */);
+
+    // Connect components via message bus
+    agentRuntime.connectToMessageBus(messageBus);
+    graphManager.connectToMessageBus(messageBus);
+  });
+
+  it('should update graph when agent is created', async () => {
+    // Arrange
+    const nodeCreatedPromise = new Promise<string>(resolve => {
+      messageBus.subscribe('agentforge.graph.nodeCreated', (data) => {
+        resolve(data.nodeId);
+      });
+    });
+
+    // Act
+    const agentId = await agentRuntime.createAgent({
+      type: 'llm',
+      name: 'Test Agent',
+      configuration: { model: 'test-model' }
+    });
+
+    // Assert
+    const nodeId = await nodeCreatedPromise;
+    expect(nodeId).toBeDefined();
+
+    const node = await graphManager.getNode(nodeId);
+    expect(node.agentId).toBe(agentId);
+    expect(node.label).toBe('Test Agent');
+  });
+
+  // More integration tests...
+});
+```
+
+## UI Component Testing
+
+Test React components with React Testing Library:
+
+```typescript
+// src/components/__tests__/AgentNode.test.tsx
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { AgentNode } from '../AgentNode';
+
+describe('AgentNode', () => {
+  const defaultProps = {
+    data: {
+      id: 'node-1',
+      agentId: 'agent-123',
+      name: 'Test Agent',
+      type: 'llm'
+    },
+    selected: false,
+    onSelect: jest.fn()
+  };
+
+  it('renders agent name and type', () => {
+    // Arrange & Act
+    render(<AgentNode {...defaultProps} />);
+
+    // Assert
+    expect(screen.getByText('Test Agent')).toBeInTheDocument();
+    expect(screen.getByText('llm')).toBeInTheDocument();
+  });
+
+  it('calls onSelect when clicked', () => {
+    // Arrange
+    render(<AgentNode {...defaultProps} />);
+
+    // Act
+    fireEvent.click(screen.getByRole('button'));
+
+    // Assert
+    expect(defaultProps.onSelect).toHaveBeenCalledWith('node-1');
+  });
+
+  it('has selected styling when selected', () => {
+    // Arrange & Act
+    const { container } = render(<AgentNode {...defaultProps} selected={true} />);
+
+    // Assert
+    const nodeElement = container.firstChild as HTMLElement;
+    expect(nodeElement.style.borderColor).toBe('#0078D4');
+  });
+
+  // More component tests...
+});
+```
+
+## End-to-End Testing
+
+Use Playwright for E2E testing:
+
+```typescript
+// e2e/agent-creation.spec.ts
+import { test, expect } from '@playwright/test';
+
+test('create and run an agent', async ({ page }) => {
+  // Navigate to the application
+  await page.goto('vscode://agentforge.app');
+
+  // Open the agent creation panel
+  await page.click('#create-agent-button');
+
+  // Fill in the agent details
+  await page.fill('#agent-name-input', 'Test E2E Agent');
+  await page.selectOption('#agent-type-select', 'llm');
+  await page.fill('#model-input', 'gpt-3.5-turbo');
+
+  // Create the agent
+  await page.click('#save-agent-button');
+
+  // Verify the agent node appears in the graph
+  await expect(page.locator('.agent-node:has-text("Test E2E Agent")')).toBeVisible();
+
+  // Start the agent
+  await page.click('.agent-node:has-text("Test E2E Agent")');
+  await page.click('#start-agent-button');
+
+  // Verify the agent status changes to running
+  await expect(page.locator('.agent-status-indicator.running')).toBeVisible();
+
+  // More E2E assertions...
+});
+```
+
+## Performance Testing
+
+Test performance critical operations:
+
+```typescript
+// performance-tests/memory-store.perf.ts
+import { MemoryManager } from 'agentforge-memory';
+
+describe('Memory Manager Performance', () => {
+  let memoryManager: MemoryManager;
+
+  beforeEach(() => {
+    memoryManager = new MemoryManager();
+  });
+
+  it('handles large memory chunks efficiently', async () => {
+    // Arrange
+    const agentId = 'perf-test-agent';
+    const largeMemory = generateLargeMemoryObject(10000); // 10K entries
+
+    await memoryManager.initializeMemory(agentId, {});
+
+    // Act
+    const startTime = performance.now();
+
+    await memoryManager.updateMemory(agentId, largeMemory);
+    const retrievedMemory = await memoryManager.getMemory(agentId);
+
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+
+    // Assert
+    expect(duration).toBeLessThan(500); // Less than 500ms
+    expect(retrievedMemory).toEqual(largeMemory);
+  });
+
+  // More performance tests...
+});
+```
+
+## Mocking Strategies
+
+### Message Bus Mocking
+
+```typescript
+// Create a mock message bus
+const mockMessageBus = {
+  publish: jest.fn(),
+  subscribe: jest.fn().mockImplementation(() => () => {}),
+  unsubscribe: jest.fn()
+};
+
+// Test component with mock bus
+myComponent.connectToMessageBus(mockMessageBus);
+
+// Verify message was published
+expect(mockMessageBus.publish).toHaveBeenCalledWith(
+  'agentforge.runtime.agentStarted',
+  expect.objectContaining({ agentId: 'test-agent' })
+);
+```
+
+### VSCode API Mocking
+
+```typescript
+// Mock VSCode namespace
+jest.mock('vscode', () => ({
+  window: {
+    showInformationMessage: jest.fn(),
+    createOutputChannel: jest.fn().mockReturnValue({
+      appendLine: jest.fn(),
+      show: jest.fn()
+    })
+  },
+  commands: {
+    registerCommand: jest.fn().mockImplementation((_, callback) => {
+      // Store callback for test to call
+      commandCallbacks[_] = callback;
+      return { dispose: jest.fn() };
+    })
+  },
+  workspace: {
+    getConfiguration: jest.fn().mockReturnValue({
+      get: jest.fn().mockImplementation(key => {
+        const defaults = {
+          'agentforge.maxAgents': 10,
+          'agentforge.loggingLevel': 'info'
+        };
+        return defaults[key];
+      }),
+      update: jest.fn()
+    })
+  }
+}));
+
+// Then in test
+const vscode = require('vscode');
+expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+  'Agent created successfully'
+);
+```
+
+## Test Coverage
+
+Aim for high test coverage metrics:
+
+```json
+// jest.config.js
+module.exports = {
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 85,
+      lines: 90,
+      statements: 90
+    }
+  },
+  collectCoverageFrom: [
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/test/**",
+    "!**/node_modules/**"
+  ]
+}
+```
+
+## Snapshot Testing
+
+Use snapshots for UI components:
+
+```typescript
+it('renders correctly', () => {
+  const { asFragment } = render(<AgentNode {...defaultProps} />);
+  expect(asFragment()).toMatchSnapshot();
+});
+```
+
+## Test Organization
+
+Organize tests by test type and component:
+
+```
+project/
+├── src/
+│   ├── components/
+│   │   ├── __tests__/          # Component unit tests
+│   │   │   └── AgentNode.test.tsx
+│   │   └── services/
+│   │       ├── __tests__/          # Service unit tests
+│   │       │   └── AgentService.test.ts
+│   │   └── integration-tests/          # Cross-component tests
+│   │       └── RuntimeGraphIntegration.test.ts
+│   ├── e2e/                        # End-to-end tests
+│   │   └── agent-creation.spec.ts
+│   └── performance-tests/          # Performance tests
+│       └── memory-store.perf.ts
+```

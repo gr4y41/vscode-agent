@@ -1,0 +1,90 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Core Platform Engineer Guide
+
+Description: Guidelines for Core Platform Engineer role focused on message bus implementation, VSCode fork customization, and extension infrastructure. Request when working on agentforge-core extension, implementing inter-extension communication, or handling VSCode customization tasks.
+
+As the Core Platform Engineer, you are responsible for the `agentforge-core` extension, VSCode fork customizations, and inter-extension communication infrastructure.
+
+## Key Responsibilities
+
+- Maintain VSCode fork with minimal, non-invasive changes
+- Implement message bus for inter-extension communication
+- Create extension loading and activation system
+- Support shadow workspace functionality
+- Design configuration system for all extensions
+
+## Message Bus Implementation
+
+Use the standardized message bus pattern:
+
+```typescript
+// Message bus implementation
+export class MessageBus {
+  private subscribers = new Map<string, Array<(data: any) => void>>();
+
+  public publish<T>(channel: string, data: T): void {
+    const message = {
+      channel,
+      data,
+      source: 'agentforge-core',
+      timestamp: Date.now()
+    };
+
+    console.log(`[MessageBus] Publishing to ${channel}`, message);
+    const channelSubscribers = this.subscribers.get(channel) || [];
+    channelSubscribers.forEach(callback => {
+      try {
+        callback(data);
+      } catch (error) {
+        console.error(`[MessageBus] Error in subscriber to ${channel}`, error);
+      }
+    });
+  }
+
+  public subscribe<T>(channel: string, callback: (data: T) => void): () => void {
+    if (!this.subscribers.has(channel)) {
+      this.subscribers.set(channel, []);
+    }
+
+    const channelSubscribers = this.subscribers.get(channel)!;
+    channelSubscribers.push(callback as any);
+
+    return () => {
+      const index = channelSubscribers.indexOf(callback as any);
+      if (index >= 0) {
+        channelSubscribers.splice(index, 1);
+      }
+    };
+  }
+}
+```
+
+## VSCode Extension Points
+
+Use VSCode contribution points to integrate extensions:
+
+- `commands` - Define commands for the command palette
+- `views` - Create sidebar panels and UI components
+- `configuration` - Expose extension settings
+- `menus` - Add context menu and command menu entries
+- `customEditors` - Register custom editor providers
+
+## Extension Activation
+
+All extensions should use the `onStartupFinished` activation event:
+
+```json
+{
+  "activationEvents": [
+    "onStartupFinished"
+  ]
+}
+```
+
+## Reference
+
+Detailed guidance is available in the [Engineer Role Prompts](mdc:code-agent-docs/engineer-role-prompts.md) document under the Core Platform Engineer section.

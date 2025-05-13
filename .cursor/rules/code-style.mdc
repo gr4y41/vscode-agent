@@ -1,0 +1,40 @@
+---
+description: Code style standards for the AgentForge project. Request when writing new code, refactoring existing code, or reviewing code to ensure it follows project conventions for TypeScript, component structure, and testing.
+globs:
+alwaysApply: false
+---
+# AgentForge Code Style Guidelines
+
+Description: Code style standards for the AgentForge project. Request when writing new code, refactoring existing code, or reviewing code to ensure it follows project conventions for TypeScript, component structure, and testing.
+
+All AgentForge code should follow consistent style guidelines to ensure maintainability and readability.
+
+## TypeScript Guidelines
+
+- Use TypeScript with strict mode enabled
+- Follow VSCode code style (2-space indentation, semicolons)
+- Prefer interfaces over type aliases
+- Avoid `any` types except where absolutely necessary
+- Use async/await for asynchronous code
+- Add comprehensive JSDoc comments for public APIs
+
+## Component Structure
+
+- Follow component-based architecture for UI elements
+- Use dependency injection for testability
+- Keep components small and focused on a single responsibility
+- Create reusable components where possible
+
+## Observability
+
+- Implement logging for all critical operations
+- Add performance tracking for expensive operations
+- Include error handling with proper context
+- Use consistent error types and message formats
+
+## Testing
+
+- Write unit tests for all non-trivial functionality
+- Create integration tests for cross-extension operations
+- Add visual regression tests for UI components
+- Test edge cases and error conditions

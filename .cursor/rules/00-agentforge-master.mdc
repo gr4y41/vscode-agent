@@ -1,0 +1,98 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# AgentForge Master Rule
+
+Description: Central rule that helps determine which engineer role to apply in the current context, provides role selection guidance, and links to all other rules. Request when you need to understand project structure, determine which role's expertise to apply, or navigate between different rules for a complex task.
+
+This master rule guides the agentic development of the AgentForge project, helping to determine which engineering role and ruleset to apply based on context.
+
+## Project Context
+
+AgentForge is a specialized IDE for AI agent development based on VSCode with these key components:
+
+- **Core Platform**: VSCode fork with message bus and extension loading system
+- **Graph Interface**: Visual editor for creating and managing agents
+- **Agent Runtime**: Execution environment for agents with memory management
+- **Navigation & Sync**: Bidirectional synchronization between code and graph
+- **LLM & Tools**: AI integration and agent debugging capabilities
+
+## Engineer Role Selection
+
+When determining which engineer role is most relevant:
+
+1. **For VSCode customization, message bus, extension loading**:
+   - Apply [Core Platform Engineer Guide](mdc:core-platform-engineer.mdc) rules
+   - Relevant directories: `agentforge-core/`
+   - Key files: Message bus implementation, extension activation
+
+2. **For graph visualization, UI components, node rendering**:
+   - Apply [UI/Graph Engineer Guide](mdc:ui-graph-engineer.mdc) rules
+   - Relevant directories: `agentforge-graph/`
+   - Key files: Node renderers, graph components, property editors
+
+3. **For agent execution, sandboxing, memory management**:
+   - Apply [Agent Runtime Engineer Guide](mdc:agent-runtime-engineer.mdc) rules
+   - Relevant directories: `agentforge-runtime/`, `agentforge-memory/`
+   - Key files: Agent lifecycle management, memory storage
+
+4. **For code-graph mapping, navigation, synchronization**:
+   - Apply [Integration & Sync Engineer Guide](mdc:integration-sync-engineer.mdc) rules
+   - Relevant directories: `agentforge-navigation/`
+   - Key files: Code mappers, decorations, file system watchers
+
+5. **For LLM integration, templates, debugging tools**:
+   - Apply [LLM & Tooling Engineer Guide](mdc:llm-tooling-engineer.mdc) rules
+   - Cross-cutting concern across multiple extensions
+   - Key files: LLM providers, template systems, debugging visualizations
+
+## Decision Framework
+
+Determine the most relevant role based on:
+
+1. **User Query Analysis**:
+   - Look for role-specific keywords (e.g., "graph visualization", "agent runtime", "code synchronization")
+   - Identify technical domain (UI, runtime, synchronization, etc.)
+
+2. **File Context**:
+   - Check directory/file path being edited
+   - Analyze content and purpose of files in view
+
+3. **Task Nature**:
+   - Architecture decisions → Core Platform Engineer
+   - Visual components → UI/Graph Engineer
+   - Agent behavior → Agent Runtime Engineer
+   - Code-graph linking → Integration & Sync Engineer
+   - AI capabilities → LLM & Tooling Engineer
+
+4. **Cross-Cutting Concerns**:
+   - For tasks spanning multiple roles, prioritize by primary responsibility
+   - Apply role-specific knowledge sequentially for complex tasks
+
+## Implementation Patterns
+
+Always apply these patterns regardless of role:
+
+- [Shadow Workspace Concept](mdc:shadow-workspace.mdc) for safe agent modifications
+- [Code Style Guidelines](mdc:code-style.mdc) for consistent implementation
+- [Error Handling Patterns](mdc:error-handling.mdc) for robust error management
+- [Testing Strategies](mdc:testing-strategies.mdc) for comprehensive testing
+- [Documentation Standards](mdc:documentation-standards.mdc) for clear documentation
+- [Collaboration Patterns](mdc:collaboration-patterns.mdc) for team coordination
+- [Common Workflows](mdc:common-workflows.mdc) for standard development tasks
+- [Engineer Roles](mdc:engineer-roles.mdc) responsibilities
+- [Extension Architecture](mdc:extension-architecture.mdc) patterns
+- [Project Structure](mdc:project-structure.mdc) for navigation
+- [Agent Development](mdc:agent-development.mdc) best practices
+- TypeScript with strict type checking
+- Comprehensive unit testing
+- Observability for critical operations
+
+## Reference Documents
+
+For comprehensive project guidance:
+
+- [Engineer Role Prompts](mdc:code-agent-docs/engineer-role-prompts.md) - Detailed engineering guidance
+- [Technical Workstreams](mdc:code-agent-docs/technical-workstreams.md) - Key technical areas

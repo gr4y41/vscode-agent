@@ -1,0 +1,270 @@
+---
+description: Documentation requirements for AgentForge code and extensions. Request when writing code documentation, creating extension README files, updating API references, or documenting architecture and changes.
+globs:
+alwaysApply: false
+---
+# AgentForge Documentation Standards
+
+Description: Documentation requirements for AgentForge code and extensions. Request when writing code documentation, creating extension README files, updating API references, or documenting architecture and changes.
+
+This rule defines the documentation standards to be followed throughout the AgentForge project, ensuring consistency and comprehensiveness.
+
+## Code Documentation
+
+### TypeScript/JavaScript Files
+
+Use JSDoc comments for all public APIs:
+
+```typescript
+/**
+ * Creates a new agent with the specified configuration.
+ *
+ * @param {AgentDefinition} definition - The configuration for the new agent
+ * @param {object} [options] - Optional parameters
+ * @param {boolean} [options.startImmediately=false] - Whether to start the agent immediately after creation
+ * @param {string} [options.parentId] - ID of the parent agent, if this is a child agent
+ *
+ * @returns {Promise<string>} The ID of the newly created agent
+ *
+ * @throws {AgentForgeError} If the agent could not be created
+ * @throws {ValidationError} If the agent definition is invalid
+ *
+ * @example
+ * ```typescript
+ * const agentId = await createAgent({
+ *   type: 'llm',
+ *   name: 'My Agent',
+ *   configuration: {
+ *     model: 'gpt-3.5-turbo'
+ *   }
+ * });
+ * ```
+ */
+export async function createAgent(
+  definition: AgentDefinition,
+  options?: CreateAgentOptions
+): Promise<string> {
+  // Implementation
+}
+```
+
+### Interface Definitions
+
+Document all interfaces with descriptions:
+
+```typescript
+/**
+ * Configuration for an agent.
+ */
+export interface AgentConfig {
+  /**
+   * Unique identifier for the agent. If not provided, a UUID will be generated.
+   */
+  id?: string;
+
+  /**
+   * Human-readable name for the agent.
+   */
+  name: string;
+
+  /**
+   * The type of agent.
+   */
+  type: 'llm' | 'reactive' | 'custom';
+
+  /**
+   * Agent-specific configuration.
+   */
+  configuration: unknown;
+}
+```
+
+### File Headers
+
+Include a header comment in each file:
+
+```typescript
+/**
+ * @file Agent Runtime implementation
+ * @description Manages the lifecycle of agents, including creation, starting, stopping, and deletion.
+ * @module agentforge-runtime
+ */
+```
+
+## Extension Documentation
+
+Each extension should have a comprehensive README.md:
+
+```markdown
+# AgentForge Runtime Extension
+
+## Overview
+
+The Runtime extension manages the lifecycle of agents, including creation, execution, and state management.
+
+## Features
+
+- Agent lifecycle management (create, start, stop, delete)
+- Sandboxed execution environment
+- Resource monitoring and limits
+- Standardized I/O channels
+
+## Usage
+
+```typescript
+import { agentRuntime } from 'agentforge-runtime';
+
+// Create an agent
+const agentId = await agentRuntime.createAgent({
+  type: 'llm',
+  name: 'Assistant',
+  configuration: {
+    model: 'gpt-3.5-turbo'
+  }
+});
+
+// Start the agent
+await agentRuntime.startAgent(agentId);
+
+// Stop the agent
+await agentRuntime.stopAgent(agentId);
+```
+
+## API Reference
+
+### AgentRuntime
+
+Main class for agent lifecycle management.
+
+#### Methods
+
+- `createAgent(definition: AgentDefinition): Promise<string>`
+- `startAgent(agentId: string, options?: any): Promise<void>`
+- `stopAgent(agentId: string): Promise<void>`
+- `deleteAgent(agentId: string): Promise<void>`
+
+...
+```
+
+## API Reference Documentation
+
+Generate comprehensive API reference documentation using TypeDoc:
+
+```json
+// typedoc.json
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "name": "AgentForge API Reference",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "theme": "default",
+  "categorizeByGroup": true,
+  "categoryOrder": ["Core", "Graph", "Runtime", "Memory", "Navigation", "*"]
+}
+```
+
+## Architecture Documentation
+
+Maintain architecture documentation with diagrams:
+
+```markdown
+# AgentForge Architecture
+
+## Overview
+
+AgentForge uses a modular extension-based architecture:
+
+- Each major component is implemented as a standalone VSCode extension
+- Extensions communicate through a message bus
+- All extensions activate on startup
+
+## Component Diagram
+
+```mermaid
+graph TD
+    Core[AgentForge Core] --> |loads| Graph[Graph Extension]
+    Core --> |loads| Runtime[Runtime Extension]
+    Core --> |loads| Memory[Memory Extension]
+    Core --> |loads| Navigation[Navigation Extension]
+
+    Graph <--> |messages| Runtime
+    Runtime <--> |messages| Memory
+    Graph <--> |messages| Navigation
+```
+
+## Extension Communication
+
+Extensions communicate using a typed message bus system:
+
+```typescript
+// Publishing a message
+messageBus.publish('agentforge.runtime.agentStarted', {
+  agentId: 'agent-123',
+  timestamp: Date.now()
+});
+
+// Subscribing to messages
+messageBus.subscribe('agentforge.memory.stateChanged', (data) => {
+  // Handle memory state change
+});
+```
+```
+
+## Comment Annotations
+
+Use consistent comment annotations:
+
+```typescript
+// TODO: This is something that needs to be done
+// FIXME: This is a bug that needs to be fixed
+// HACK: This is a temporary solution
+// NOTE: This is important information
+// PERF: This is a performance consideration
+// SECURITY: This is a security consideration
+```
+
+## Change Documentation
+
+Document all significant changes in CHANGELOG.md:
+
+```markdown
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](mdc:https:/keepachangelog.com/en/1.0.0),
+and this project adheres to [Semantic Versioning](mdc:https:/semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- New feature X
+- Support for Y
+
+### Changed
+- Improved performance of Z
+
+### Fixed
+- Bug in feature W
+
+## [1.0.0] - 2023-01-01
+
+### Added
+- Initial release
+```
+
+## Documentation Generation
+
+Configure automatic documentation generation in build process:
+
+```json
+// package.json
+{
+  "scripts": {
+    "docs": "typedoc",
+    "build": "tsc && npm run docs"
+  }
+}
+```

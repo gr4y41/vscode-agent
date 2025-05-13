@@ -1,0 +1,32 @@
+---
+description: Overview of the different engineering roles in the AgentForge project. Request when you need to understand the responsibilities of each role, their ownership boundaries, or which role should handle a particular task.
+globs:
+alwaysApply: false
+---
+# AgentForge Engineer Roles
+
+Description: Overview of the different engineering roles in the AgentForge project. Request when you need to understand the responsibilities of each role, their ownership boundaries, or which role should handle a particular task.
+
+AgentForge development is organized around specific engineering roles, each responsible for different aspects of the system.
+
+## Core Roles
+
+- **Core Platform Engineer** - Responsible for `agentforge-core` extension and VSCode fork customizations
+- **UI/Graph Engineer** - Responsible for `agentforge-graph` extension and visual editor components
+- **Agent Runtime Engineer** - Responsible for `agentforge-runtime` and `agentforge-memory` extensions
+- **Integration & Sync Engineer** - Responsible for `agentforge-navigation` and bidirectional sync
+- **LLM & Tooling Engineer** - Responsible for AI integration across all extensions
+
+## Role Responsibilities
+
+Each role has specific implementation areas:
+
+- Core Platform: VSCode fork, extension loading, message bus
+- UI/Graph: Graph visualization, node types, property editors
+- Agent Runtime: Sandboxed execution, memory management, state tracking
+- Integration & Sync: Code-graph mapping, navigation, synchronization
+- LLM & Tooling: LLM integration, agent templates, debugging tools
+
+## Reference
+
+The [Engineer Role Prompts](mdc:code-agent-docs/engineer-role-prompts.md) document contains detailed guidance for each role.
