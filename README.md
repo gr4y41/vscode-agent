@@ -1,79 +1,108 @@
-# Visual Studio Code - Open Source ("Code - OSS")
+# AgentForge
 
-[![Feature Requests](https://img.shields.io/github/issues/microsoft/vscode/feature-request.svg)](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
-[![Bugs](https://img.shields.io/github/issues/microsoft/vscode/bug.svg)](https://github.com/microsoft/vscode/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Abug)
-[![Gitter](https://img.shields.io/badge/chat-on%20gitter-yellow.svg)](https://gitter.im/Microsoft/vscode)
-
-## The Repository
-
-This repository ("`Code - OSS`") is where we (Microsoft) develop the [Visual Studio Code](https://code.visualstudio.com) product together with the community. Not only do we work on code and issues here, we also publish our [roadmap](https://github.com/microsoft/vscode/wiki/Roadmap), [monthly iteration plans](https://github.com/microsoft/vscode/wiki/Iteration-Plans), and our [endgame plans](https://github.com/microsoft/vscode/wiki/Running-the-Endgame). This source code is available to everyone under the standard [MIT license](https://github.com/microsoft/vscode/blob/main/LICENSE.txt).
-
-## Visual Studio Code
+A specialized IDE for AI agent development based on VSCode with a modular extension architecture.
 
 <p align="center">
-  <img alt="VS Code in action" src="https://user-images.githubusercontent.com/35271042/118224532-3842c400-b438-11eb-923d-a5f66fa6785a.png">
+  <img alt="AgentForge Logo" src="docs/images/agentforge-logo.png" width="256">
 </p>
 
-[Visual Studio Code](https://code.visualstudio.com) is a distribution of the `Code - OSS` repository with Microsoft-specific customizations released under a traditional [Microsoft product license](https://code.visualstudio.com/License/).
+## Overview
 
-[Visual Studio Code](https://code.visualstudio.com) combines the simplicity of a code editor with what developers need for their core edit-build-debug cycle. It provides comprehensive code editing, navigation, and understanding support along with lightweight debugging, a rich extensibility model, and lightweight integration with existing tools.
+AgentForge is a specialized IDE built on a VSCode fork that enables developers to create, visualize, debug, and deploy AI agents through a graph-based interface. It bridges the gap between code and visual agent development, providing a bidirectional synchronization system that keeps both representations in sync.
 
-Visual Studio Code is updated monthly with new features and bug fixes. You can download it for Windows, macOS, and Linux on [Visual Studio Code's website](https://code.visualstudio.com/Download). To get the latest releases every day, install the [Insiders build](https://code.visualstudio.com/insiders).
+### Key Components
 
-## Contributing
+- **Core Platform**: VSCode fork with message bus and extension loading system
+- **Graph Interface**: Visual editor for creating and managing agents
+- **Agent Runtime**: Execution environment for agents with memory management
+- **Navigation & Sync**: Bidirectional synchronization between code and graph
+- **LLM & Tools**: AI integration and agent debugging capabilities
 
-There are many ways in which you can participate in this project, for example:
+## Architecture
 
-* [Submit bugs and feature requests](https://github.com/microsoft/vscode/issues), and help us verify as they are checked in
-* Review [source code changes](https://github.com/microsoft/vscode/pulls)
-* Review the [documentation](https://github.com/microsoft/vscode-docs) and make pull requests for anything from typos to additional and new content
+AgentForge uses a modular extension-based architecture:
 
-If you are interested in fixing issues and contributing directly to the code base,
-please see the document [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute), which covers the following:
+- Each major component is implemented as a standalone VSCode extension
+- Extensions communicate through a message bus
+- All extensions activate on startup
+- The system follows a strict separation of concerns
 
-* [How to build and run from source](https://github.com/microsoft/vscode/wiki/How-to-Contribute)
-* [The development workflow, including debugging and running tests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#debugging)
-* [Coding guidelines](https://github.com/microsoft/vscode/wiki/Coding-Guidelines)
-* [Submitting pull requests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#pull-requests)
-* [Finding an issue to work on](https://github.com/microsoft/vscode/wiki/How-to-Contribute#where-to-contribute)
-* [Contributing to translations](https://aka.ms/vscodeloc)
+## Getting Started
 
-## Feedback
+### Prerequisites
 
-* Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/vscode)
-* [Request a new feature](CONTRIBUTING.md)
-* Upvote [popular feature requests](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
-* [File an issue](https://github.com/microsoft/vscode/issues)
-* Connect with the extension author community on [GitHub Discussions](https://github.com/microsoft/vscode-discussions/discussions) or [Slack](https://aka.ms/vscode-dev-community)
-* Follow [@code](https://twitter.com/code) and let us know what you think!
+- Node.js 16+
+- Git
+- Yarn
 
-See our [wiki](https://github.com/microsoft/vscode/wiki/Feedback-Channels) for a description of each of these channels and information on some other available community-driven channels.
+### Installation
 
-## Related Projects
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/agentforge.git
+cd agentforge
 
-Many of the core components and extensions to VS Code live in their own repositories on GitHub. For example, the [node debug adapter](https://github.com/microsoft/vscode-node-debug) and the [mono debug adapter](https://github.com/microsoft/vscode-mono-debug) repositories are separate from each other. For a complete list, please visit the [Related Projects](https://github.com/microsoft/vscode/wiki/Related-Projects) page on our [wiki](https://github.com/microsoft/vscode/wiki).
+# Install dependencies
+yarn install
 
-## Bundled Extensions
+# Build extensions
+yarn build
 
-VS Code includes a set of built-in extensions located in the [extensions](extensions) folder, including grammars and snippets for many languages. Extensions that provide rich language support (code completion, Go to Definition) for a language have the suffix `language-features`. For example, the `json` extension provides coloring for `JSON` and the `json-language-features` extension provides rich language support for `JSON`.
+# Start AgentForge
+yarn start
+```
 
-## Development Container
+## Development
 
-This repository includes a Visual Studio Code Dev Containers / GitHub Codespaces development container.
+AgentForge is organized around specific engineering roles, each responsible for different aspects of the system:
 
-* For [Dev Containers](https://aka.ms/vscode-remote/download/containers), use the **Dev Containers: Clone Repository in Container Volume...** command which creates a Docker volume for better disk I/O on macOS and Windows.
-  * If you already have VS Code and Docker installed, you can also click [here](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode) to get started. This will cause VS Code to automatically install the Dev Containers extension if needed, clone the source code into a container volume, and spin up a dev container for use.
+### Engineering Roles
 
-* For Codespaces, install the [GitHub Codespaces](https://marketplace.visualstudio.com/items?itemName=GitHub.codespaces) extension in VS Code, and use the **Codespaces: Create New Codespace** command.
+- **Core Platform Engineer**: Responsible for VSCode fork, message bus, extension infrastructure
+- **UI/Graph Engineer**: Responsible for graph visualization, node rendering, UI components
+- **Agent Runtime Engineer**: Responsible for agent execution environment, memory systems
+- **Integration & Sync Engineer**: Responsible for code-graph mappings, navigation features
+- **LLM & Tooling Engineer**: Responsible for language model integration, debugging tools
 
-Docker / the Codespace should have at least **4 Cores and 6 GB of RAM (8 GB recommended)** to run full build. See the [development container README](.devcontainer/README.md) for more information.
+### Development Workflows
 
-## Code of Conduct
+For detailed guides on common development workflows, see the [development documentation](docs/development.md), which covers:
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+- Creating new extensions
+- Implementing agent types
+- Developing UI components
+- Establishing cross-extension communication
+- Testing and debugging
+
+### Contributing
+
+We welcome contributions to AgentForge! To contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+All contributions should follow our [code style](docs/code-style.md) and include appropriate tests.
+
+## Documentation
+
+- [Architecture Overview](docs/architecture.md)
+- [Project Structure](docs/project-structure.md)
+- [Engineer Role Guides](docs/engineer-roles.md)
+- [Shadow Workspace Concept](docs/shadow-workspace.md)
+- [Error Handling Guidelines](docs/error-handling.md)
+- [Testing Strategies](docs/testing-strategies.md)
+- [Documentation Standards](docs/documentation-standards.md)
+- [Collaboration Patterns](docs/collaboration-patterns.md)
 
 ## License
 
-Copyright (c) Microsoft Corporation. All rights reserved.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
 
-Licensed under the [MIT](LICENSE.txt) license.
+## Acknowledgments
+
+- Built on [Visual Studio Code](https://github.com/microsoft/vscode)
+- Inspired by Cursor extensions architecture
+- Special thanks to all contributors
